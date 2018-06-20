@@ -1,19 +1,7 @@
 #include <stdio.h>
 #include "contacts.h"
 #include "menu.c"
-
-Contact addContact() {
-  Contact contact;
-  return contact;
-}
-
-void removeContact(Contact* contact) {
-
-}
-
-void showContact(int id) {
-
-}
+#include "crud.c"
 
 // Main Function
 int main(void) {
