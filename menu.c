@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "contacts.h"
 
 int userMenuOption() {
   int option = -1;
