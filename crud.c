@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include "contacts.h"
 
 // sprintf(options[0], "[1] Cadastrar novo contato");
 // sprintf(options[1], "[2] Exibir contato");
