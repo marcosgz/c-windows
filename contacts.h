@@ -13,8 +13,13 @@ typedef struct contact {
 }Contact;
 
 // Functions Prototypes
+
+// -> menu.c
 int userMenuOption();
 void showMenu();
-void removeContact(Contact* contact);
+// -> crud.c
 void showContact(int id);
-Contact addContact();
+void listContacts();
+void searchContacts();
+void removeContact(int id);
+void deleteDB();
