@@ -15,3 +15,6 @@ typedef struct contact {
 // Functions Prototypes
 int userMenuOption();
 void showMenu();
+void removeContact(Contact* contact);
+void showContact(int id);
+Contact addContact();
