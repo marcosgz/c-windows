@@ -1,5 +1,33 @@
 #include <stdio.h>
 
+void gotoMenu(int option) {
+  int contactID;
+  switch(option) {
+    case 1:
+      addContact();
+      break;
+    case 2:
+      contactID = askContactID();
+      // showContactByID(contactID); ## Define this function
+      break;
+    case 3:
+      listContacts();
+      break;
+    case 4:
+      searchContacts();
+      break;
+    case 5:
+      contactID = askContactID();
+      // removeContactByID(contactID) ## define this function
+      break;
+    case 6:
+      deleteDB();
+      break;
+    default:
+      break;
+  }
+}
+
 int userMenuOption() {
   int option = -1;
   printf("\n> ");

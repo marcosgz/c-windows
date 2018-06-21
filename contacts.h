@@ -6,7 +6,6 @@ typedef struct contact {
   int id;
   char name[50];
   char address[100];
-  char phoneArea[3];
   char phone[13];
   char email[30];
   char details[255];
@@ -17,9 +16,13 @@ typedef struct contact {
 // -> menu.c
 int userMenuOption();
 void showMenu();
+void gotoMenu(int option);
 // -> crud.c
-void showContact(int id);
+void addContact();
+void saveContact(Contact contact);
+void showContact(Contact contact);
 void listContacts();
 void searchContacts();
 void removeContact(int id);
 void deleteDB();
+int askContactID();
