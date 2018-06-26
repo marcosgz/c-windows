@@ -1,0 +1,17 @@
+16 80
++------------------------------------------------------------------------------+
+|                                                                              |
+|                                 Menu Inicial                                 |
+|                                ==============                                |
+|                                                                              |
+|  [1] Cadastrar/Atualizar contato                                             |
+|  [2] Exibir contato                                                          |
+|  [3] Listar todos contatos                                                   |
+|  [4] Procurar contato                                                        |
+|  [5] Apagar contato                                                          |
+|  [6] Eliminar banco de dados                                                 |
+|  [7] Salvar alteracoes no banco de dados                                     |
+|  [8] Discartar alteracoes                                                    |
+|  [9] Salvar & Sair do sistema                                                |
+|                                                                              |
++------------------------------------------------------------------------------+

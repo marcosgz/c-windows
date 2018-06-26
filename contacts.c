@@ -3,8 +3,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 // Cabeçalhos locais
 #include "contacts.h"
+#include "screen.c"
 
 int isValidContactID(int id) {
   if (id > 0 && id <= MAX_CONTACTS) {
@@ -15,75 +23,165 @@ int isValidContactID(int id) {
   }
 }
 
+void waitUserReturnKey() {
+  // Flush stdin
+  int ch;
+  do {
+    ch = fgetc(stdin);
+  } while (ch != EOF && ch != '\n');
+  clearerr(stdin);
+  // flush stdout
+  fflush(stdout);
+  getchar();
+}
+
+void crossSleep(int delay){
+  #ifdef _WIN32
+  Sleep(delay);
+  #else
+  usleep(delay * 1000);  /* sleep for 100 milliSeconds */
+  #endif
+}
+
+void clear() {
+  #ifdef _WIN32
+  system("cls");
+  #else
+  system("clear");
+  #endif
+}
+
+int stringToInt(char str[]) {
+  int number = 0;
+  sscanf(str, "%d", &number);
+  return number;
+}
+
+int stringLength(char str[]) {
+  int len = 0;
+  while (str[len] != '\0') {
+    len++;
+  }
+  return len;
+}
+
 void addContact() {
   Contact contact, existingContact;
 
+  Screen window;
+  ScreenPosition pos;
+  readScreen("./screens/contact-form.txt", &window);
+  showScreen(&window);
+
+
+  char stringID[2];
   do {
-    printf("Digite um ID: ");
-    contact.id = askForPositiveInt();
-  } while(isValidContactID(contact.id) == 0); // Força o usuário a digitar um ID valido
+    // Move o cursor para o campo ID:
+    pos.x = 7;
+    pos.y = 3;
+    promptScreen(&window, &pos, stringID);
+    contact.id = stringToInt(stringID);
+    if (!isValidContactID(contact.id)) {
+      updateScreenStr(&window, &pos, "__");
+      pos.y = 4;
+      updateScreenStr(&window, &pos, "-> ID nao e valido");
+    } else {
+      pos.y = 4;
+      updateScreenStr(&window, &pos, "                  ");
+    }
+  } while(!isValidContactID(contact.id));
 
   existingContact = findContactByID(contact.id);
-  printf("Digite o nome");
-  if (existingContact.id > 0) {
-    printf("(Valor atual: '%s')", existingContact.name);
+  if (existingContact.id == contact.id) {
+    pos.x = 9;
+    pos.y = 6;
+    updateScreenStr(&window, &pos, existingContact.name);
+    pos.x = 13;
+    pos.y = 8;
+    updateScreenStr(&window, &pos, existingContact.phone);
+    pos.x = 13;
+    pos.y = 10;
+    updateScreenStr(&window, &pos, existingContact.address);
+    pos.x = 11;
+    pos.y = 12;
+    updateScreenStr(&window, &pos, existingContact.email);
   }
-  printf(": ");
-  scanf(" %[^\n]s", contact.name);    // gets(contact.name);
-  fflush(stdin);
 
-  printf("Digite o endereco");
-    if (existingContact.id > 0) {
-    printf("(Valor atual: '%s')", existingContact.address);
-  }
-  printf(": ");
-  scanf(" %[^\n]s", contact.address); // gets(contact.address);
-  fflush(stdin);
+  pos.x = 9;
+  pos.y = 5;
+  promptScreen(&window, &pos, contact.name);
 
-  printf("Digite o telefone");
-  if (existingContact.id > 0) {
-    printf("(Valor atual: '%s')", existingContact.phone);
-  }
-  printf(": ");
-  scanf(" %[^\n]s", contact.phone);   // gets(contact.phone);
-  fflush(stdin);
+  pos.x = 13;
+  pos.y = 7;
+  promptScreen(&window, &pos, contact.phone);
 
-  printf("Digite o e-mail");
-    if (existingContact.id > 0) {
-    printf("(Valor atual: '%s')", existingContact.email);
-  }
-  printf(": ");
-  scanf(" %[^\n]s", contact.email);   // gets(contact.email);
-  fflush(stdin);
+  pos.x = 13;
+  pos.y = 9;
+  promptScreen(&window, &pos, contact.address);
+
+  pos.x = 11;
+  pos.y = 11;
+  promptScreen(&window, &pos, contact.email);
 
   showContact(contact);
   contacts[contact.id-1] = contact;
-  printf("Contato salvo com sucesso!\n");
 }
 
 // Discarta os char que o usuario digita do buffer. Evita loop infinito
-int askForPositiveInt() {
-  int input = 0;
+int askContactID() {
+  int id;
+  char stringID[2];
+  Screen window;
+  ScreenPosition pos;
+  readScreen("./screens/ask-contact-id.txt", &window);
+  showScreen(&window);
 
   do {
-    scanf("%d", &input);
-    while(getchar() != '\n');
-  } while (input < 1);
-  fflush(stdin);
-  return input;
+    // Move o cursor para o campo ID:
+    pos.x = 26;
+    pos.y = 7;
+    promptScreen(&window, &pos, stringID);
+    id = stringToInt(stringID);
+    if (!isValidContactID(id)) {
+      updateScreenStr(&window, &pos, "__");
+      pos.y = 8;
+      updateScreenStr(&window, &pos, "-> ID nao e valido");
+    } else {
+      pos.y = 8;
+      updateScreenStr(&window, &pos, "                  ");
+    }
+  } while(!isValidContactID(id));
+
+  return id;
 }
 
 void showContact(Contact contact) {
-  // clear();
-  printf("ID\tNome\tEndereco\tTelefone\tEmail\n");
-  printf(
-    "%d\t%s\t%s\t%s\t%s\n\n",
-    contact.id,
-    contact.name,
-    contact.address,
-    contact.phone,
-    contact.email
-  );
+  Screen window;
+  ScreenPosition pos;
+  readScreen("./screens/show-contact.txt", &window);
+  showScreen(&window);
+
+  pos.x = 7;
+  pos.y = 3;
+  updateScreenInt(&window, &pos, contact.id);
+
+  pos.x = 9;
+  pos.y = 5;
+  updateScreenStr(&window, &pos, contact.name);
+
+  pos.x = 13;
+  pos.y = 7;
+  updateScreenStr(&window, &pos, contact.phone);
+
+  pos.x = 13;
+  pos.y = 9;
+  updateScreenStr(&window, &pos, contact.address);
+
+  pos.x = 11;
+  pos.y = 11;
+  updateScreenStr(&window, &pos, contact.email);
+  showScreen(&window);
+  waitUserReturnKey();
 }
 
 Contact findContactByID(int id) {
@@ -114,29 +212,76 @@ void removeContactByID(int id) {
 }
 
 void listContacts() {
-  int i = 0;
+  Screen window;
+  ScreenPosition pos;
+  readScreen("./screens/blank.txt", &window);
+  int i = 0, line = 2;
   for(i = 0; i < MAX_CONTACTS; i++) {
-    showContactByID(i+1);
+    if (contacts[i].id == i+1) {
+      pos.y = line;
+      pos.x = 6;
+      updateScreenStr(&window, &pos, "ID: ");
+      pos.x = 10;
+      updateScreenInt(&window, &pos, contacts[i].id);
+      pos.x = 14;
+      updateScreenStr(&window, &pos, "Nome: ");
+      pos.x = 20;
+      updateScreenStr(&window, &pos, contacts[i].name);
+      line ++;
+    }
   }
+  showScreen(&window);
+  waitUserReturnKey();
 }
 
 void searchContacts() {
-  char term[255];
-  int i = 0;
+  char term[80];
+  int i = 0, found = 0;
   Contact c;
 
-  printf("Digite o termo da busca\n> ");
-  scanf(" %[^\n]s", term);
+  Screen searchWindow, resultWindow;
+  ScreenPosition searchPos, resultPos;
+  readScreen("./screens/search.txt", &searchWindow);
+  readScreen("./screens/blank.txt", &resultWindow);
+  showScreen(&searchWindow);
+
+  searchPos.x = 17;
+  searchPos.y = 7;
+  promptScreen(&searchWindow, &searchPos, term);
+
   for(i = 0; i < MAX_CONTACTS; i++) {
     c = contacts[i];
-    if (
-        strstr(c.name, term) != NULL ||
-        strstr(c.address, term) != NULL ||
-        strstr(c.phone, term) != NULL
-      ) {
-      showContact(c);
+    if (strstr(c.name, term) != NULL) {
+      found++;
+      resultPos.x = 6;
+      resultPos.y = 1 + found;
+      updateScreenStr(&resultWindow, &resultPos, "ID: ");
+      resultPos.x = 10;
+      updateScreenInt(&resultWindow, &resultPos, c.id);
+      resultPos.x = 14;
+      updateScreenStr(&resultWindow, &resultPos, "Nome: ");
+      resultPos.x = 20;
+      updateScreenStr(&resultWindow, &resultPos, c.name);
+    } else if (strstr(c.phone, term) != NULL) {
+      found++;
+      resultPos.x = 6;
+      resultPos.y = 1 + found;
+      updateScreenStr(&resultWindow, &resultPos, "ID: ");
+      resultPos.x = 10;
+      updateScreenInt(&resultWindow, &resultPos, c.id);
+      resultPos.x = 14;
+      updateScreenStr(&resultWindow, &resultPos, "Telefone: ");
+      resultPos.x = 24;
+      updateScreenStr(&resultWindow, &resultPos, c.phone);
     }
   }
+  if (found == 0) {
+    resultPos.x = 25;
+    resultPos.y = 7;
+    updateScreenStr(&resultWindow, &resultPos, "Nenhum resultado encontrado");
+  }
+  showScreen(&resultWindow);
+  waitUserReturnKey();
 }
 
 void deleteDB() {
@@ -160,12 +305,12 @@ void loadData() {
 	// int tamanho = 0;
 	db = fopen(CONTACTS_DATABASE, "rb");
 	if (db != NULL) {
-    printf("Carregando banco de dados..\n");
+    // printf("Carregando banco de dados..\n");
 		// fread(&tamanho, sizeof(int), 1, db);
 		fread(contacts, sizeof(Contact), MAX_CONTACTS, db);
 		fclose(db);
 	} else {
-    printf("Banco de dados nao encontrado. Ignorando..\n");
+    // printf("Banco de dados nao encontrado. Ignorando..\n");
   }
 }
 
@@ -177,7 +322,7 @@ void gotoMenu(char option) {
       break;
     case '2':
       printf("Digite o ID do contato:\n> ");
-      contactID = askForPositiveInt();
+      contactID = askContactID();
       showContactByID(contactID);
       break;
     case '3':
@@ -188,7 +333,7 @@ void gotoMenu(char option) {
       break;
     case '5':
       printf("Digite o ID do contato:\n> ");
-      contactID = askForPositiveInt();
+      contactID = askContactID();
       removeContactByID(contactID);
       break;
     case '6':
@@ -216,24 +361,11 @@ char userMenuOption() {
 
 // Print a simple menu with all options available to the user
 void showMenu() {
-  // clear();
-
-  int len = 9;
-  char options[len][50];
-  sprintf(options[0], "[1] Cadastrar/Atualizar contato");
-  sprintf(options[1], "[2] Exibir contato");
-  sprintf(options[2], "[3] Listar todos contatos");
-  sprintf(options[3], "[4] Procurar contato");
-  sprintf(options[4], "[5] Apagar contato");
-  sprintf(options[5], "[6] Eliminar banco de dados");
-  sprintf(options[6], "[7] Salvar alteracoes no banco de dados");
-  sprintf(options[7], "[8] Discartar alteracoes");
-  sprintf(options[8], "[%c] Salvar & Sair do sistema", EXIT_CODE);
-
-  int i;
-  for(i=0; i < len; i ++) {
-    printf("%s\n", options[i]);
-  }
+  clear();
+  // Cria a tela para Menu
+  Screen menu;
+  readScreen("./screens/menu.txt", &menu);
+  showScreen(&menu);
 }
 
 // Main Function
@@ -242,6 +374,13 @@ int main(void) {
   Contact contacts[MAX_CONTACTS];
 
   loadData();
+  clear();
+
+  Screen welcome;
+  readScreen("./screens/welcome.txt", &welcome);
+  showScreen(&welcome);
+  // crossSleep(2000);
+  clear();
 
   do {
     showMenu();
