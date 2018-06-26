@@ -18,7 +18,6 @@ int isValidContactID(int id) {
   if (id > 0 && id <= MAX_CONTACTS) {
     return 1;
   } else {
-    printf("Voce digitou o ID %d que nao e valido. Precisa ser um numero entre 1 e %d\n", id, MAX_CONTACTS);
     return 0;
   }
 }
@@ -198,17 +197,24 @@ void showContactByID(int id) {
   contact = findContactByID(id);
   if (contact.id == id) {
     showContact(contact);
+  } else {
+    char message[50];
+    sprintf(message, "Nenhum contato foi encontrado usando o ID %d", id);
+    alertMessage(message);
   }
 }
 
 void removeContactByID(int id) {
-  if (!isValidContactID(id)) {
-    return;
+  if (isValidContactID(id)) {
+    contacts[id-1].id = 0;
+    sprintf(contacts[id-1].name, "");
+    sprintf(contacts[id-1].email, "");
+    sprintf(contacts[id-1].phone, "");
+  } else {
+    char message[50];
+    sprintf(message, "Nenhum contato foi encontrado usando o ID %d", id);
+    alertMessage(message);
   }
-  contacts[id-1].id = 0;
-  sprintf(contacts[id-1].name, "");
-  sprintf(contacts[id-1].email, "");
-  sprintf(contacts[id-1].phone, "");
 }
 
 void listContacts() {
@@ -275,20 +281,35 @@ void searchContacts() {
       updateScreenStr(&resultWindow, &resultPos, c.phone);
     }
   }
-  if (found == 0) {
-    resultPos.x = 25;
-    resultPos.y = 7;
-    updateScreenStr(&resultWindow, &resultPos, "Nenhum resultado encontrado");
+  if (found > 0) {
+    showScreen(&resultWindow);
+    waitUserReturnKey();
+  } else {
+    alertMessage("Nenhum contato foi encontrado!");
   }
-  showScreen(&resultWindow);
+}
+
+void alertMessage(char message[]) {
+  Screen window;
+  ScreenPosition pos;
+  readScreen("./screens/blank.txt", &window);
+  int len = 0;
+	len = stringLength(message);
+  pos.x = (window.columns - len - 2) / 2;
+  pos.y = 7;
+  updateScreenStr(&window, &pos, message);
+  pos.x = 25;
+  pos.y = window.rows - 2;
+  updateScreenStr(&window, &pos, "Tecle <ENTER> para continuar");
+  showScreen(&window);
   waitUserReturnKey();
 }
 
 void deleteDB() {
-  if (remove("contacts.db") != 0) {
-    fprintf(stderr, "Erro ao remover o arquivo %s.\n", "contacts.db");
+  if (remove(CONTACTS_DATABASE) != 0) {
+    alertMessage("Erro ao remover o banco de dados!");
   } else {
-    printf("O banco de dados '%s' foi removido com sucesso!\n", "contacts.db");
+    alertMessage("O banco de dados foi removido com sucesso!");
   }
 }
 
@@ -297,21 +318,16 @@ void saveData() {
 	db = fopen(CONTACTS_DATABASE, "wb");
 	fwrite(contacts, sizeof(Contact), MAX_CONTACTS, db);
 	fclose(db);
-  printf("Alteracoes salvas com sucesso\n");
+  alertMessage("Alteracoes salvas com sucesso");
 }
 
 void loadData() {
   FILE *db;
-	// int tamanho = 0;
 	db = fopen(CONTACTS_DATABASE, "rb");
 	if (db != NULL) {
-    // printf("Carregando banco de dados..\n");
-		// fread(&tamanho, sizeof(int), 1, db);
 		fread(contacts, sizeof(Contact), MAX_CONTACTS, db);
 		fclose(db);
-	} else {
-    // printf("Banco de dados nao encontrado. Ignorando..\n");
-  }
+	}
 }
 
 void gotoMenu(char option) {
@@ -379,14 +395,11 @@ int main(void) {
   Screen welcome;
   readScreen("./screens/welcome.txt", &welcome);
   showScreen(&welcome);
-  // crossSleep(2000);
-  clear();
+  crossSleep(1000);
 
   do {
     showMenu();
     opt = userMenuOption();
     gotoMenu(opt);
   } while(opt != EXIT_CODE);
-
-  saveData();
 }

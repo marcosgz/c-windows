@@ -12,6 +12,6 @@
 |  [6] Eliminar banco de dados                                                 |
 |  [7] Salvar alteracoes no banco de dados                                     |
 |  [8] Discartar alteracoes                                                    |
-|  [9] Salvar & Sair do sistema                                                |
-|                                                                              |
+|  [9] Sair do sistema                                                         |
+|             (Salve as alteracoes usando opcao 7 antes de sair)               |
 +------------------------------------------------------------------------------+

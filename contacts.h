@@ -38,5 +38,6 @@ void saveData();
 void loadData();
 int isValidContactID(int id);
 Contact findContactByID(int id);
+void alertMessage(char message[]);
 
 #endif
